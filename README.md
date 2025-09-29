@@ -13,5 +13,4 @@ It integrates with the [Lichess API](https://lichess.org/api) to allow users to:
 - **Android App** → Kotlin with Compose  
 - **Mobile App** → React Native  
 - **Web App** → Web wrapping
-- 
 ---
