@@ -33,11 +33,17 @@ I want to search for a Lichess player and view their latest games,
 so that I can replay their moves and learn from their playing style.
 ### Steps:
 1. User opens the app.
-
 2. Enters a player name (e.g. “MagnusCarlsen”).
-
 3. App retrieves the latest games via Lichess API.
-
 4. User selects one game from the list.
-
 5. App displays the board and allows move-by-move replay.
+
+-------
+## Wireframes
+
+<img src="./images/wireframes.png" alt="Wireframes" width="600"/>
+
+-------
+
+## Mockup
+<img src="./images/mockup.png" alt="Mockup" width="300"/>
