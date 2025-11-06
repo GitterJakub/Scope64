@@ -1,0 +1,30 @@
+<!doctype html>
+<html lang="de">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Responsive Images – 50% Breite</title>
+    <link rel="stylesheet" href="./style.css" />
+</head>
+<body class="half">
+<main>
+    <nav><a href="index.html">100%</a> <a href="half.html" aria-current="page">50%</a></nav>
+    <h1>Schloss Schönbrunn, Wien – 50% Breite</h1>
+    <p>Hier nutzt das Bild etwa die Hälfte der Viewportbreite (mit max. 100% im Container).</p>
+
+    <figure>
+        <img
+                src="sample-images/img_1008p.jpg"
+                srcset="sample-images/img_504p.jpg 504w,
+                 sample-images/img_1008p.jpg 1008w,
+                  sample-images/img_2016p.jpg 2016w,
+                  sample-images/img_4032p.jpg 4032w"
+                sizes="50vw"
+                alt="Schloss Schönbrunn in Wien" />
+        <figcaption>Browser wählt anhand von <code>sizes="50vw"</code> die passende Ressource.</figcaption>
+    </figure>
+
+    <p><a href="index.html">Zur 100%-Variante zurück</a></p>
+</main>
+</body>
+</html>
