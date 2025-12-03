@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lab 7 – Flexbox & Media Queries</title>
+    <style>
+        /* --- Grundlayout mit Flexbox: Header, Content, Footer --- */
+        body {
+            margin: 0;
+            font-family: system-ui, sans-serif;
+            min-height: 100vh;
+
+            /* Seite ist eine Spalte: Header oben, Content in der Mitte, Footer unten */
+            display: flex;
+            flex-direction: column;
+        }
+
+        header,
+        footer {
+            background: #004f9f;
+            color: white;
+            padding: 1rem;
+            text-align: center;
+        }
+
+        main {
+            flex: 1; /* nimmt den restlichen Platz ein */
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 1rem;
+            background: #f3f3f3;
+        }
+
+        .form-container {
+            background: white;
+            padding: 1rem 1.5rem;
+            border-radius: 8px;
+            max-width: 600px;
+            width: 100%;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+
+        .form-container h2 {
+            margin-top: 0;
+            margin-bottom: 1rem;
+        }
+
+        /* --- Form-Layout mit Flexbox --- */
+        .form-row {
+            /* eine Zeile für "Label + Input" */
+            display: flex;
+            flex-direction: column; /* Standard: Label über Input (z.B. Portrait) */
+            margin-bottom: 0.75rem;
+        }
+
+        label {
+            margin-bottom: 0.25rem;
+            font-weight: 600;
+        }
+
+        input,
+        select {
+            padding: 0.5rem;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            font-size: 1rem;
+        }
+
+        button {
+            margin-top: 1rem;
+            padding: 0.75rem 1rem;
+            font-size: 1rem;
+            border: none;
+            border-radius: 4px;
+            background: #004f9f;
+            color: white;
+            cursor: pointer;
+        }
+
+        button:hover {
+            background: #0066cc;
+        }
+
+        /* --- Media Query: Landscape -> Label NEBEN Input --- */
+        @media (orientation: landscape) {
+            .form-row {
+                flex-direction: row;          /* Label & Input nebeneinander */
+                align-items: center;
+            }
+
+            .form-row label {
+                width: 150px;                 /* feste Breite fürs Label */
+                margin-bottom: 0;             /* Abstand unten weg */
+                margin-right: 0.75rem;        /* Abstand rechts zum Input */
+                text-align: right;
+            }
+
+            .form-row input,
+            .form-row select {
+                flex: 1;                      /* Input füllt restliche Breite */
+            }
+        }
+
+        /* Optional: Media Query explizit für Portrait (falls du was anpassen willst) */
+        @media (orientation: portrait) {
+            /* hier könntest du z.B. Schriftgrößen, Abstände etc. anpassen */
+        }
+
+    </style>
+</head>
+<body>
+<header>
+    <h1>Lab 7 – Responsive Form</h1>
+</header>
+
+<main>
+    <div class="form-container">
+        <h2>Registrierung</h2>
+        <form>
+
+            <!-- Beispiel-Felder mit verschiedenen input type-Werten -->
+            <div class="form-row">
+                <label for="name">Name</label>
+                <input id="name" name="name" type="text" placeholder="Vor- und Nachname">
+            </div>
+
+            <div class="form-row">
+                <label for="email">E-Mail</label>
+                <input id="email" name="email" type="email" placeholder="name@example.com">
+            </div>
+
+            <div class="form-row">
+                <label for="password">Passwort</label>
+                <input id="password" name="password" type="password">
+            </div>
+
+            <div class="form-row">
+                <label for="age">Alter</label>
+                <input id="age" name="age" type="number" min="0" max="120">
+            </div>
+
+            <div class="form-row">
+                <label for="birthday">Geburtstag</label>
+                <input id="birthday" name="birthday" type="date">
+            </div>
+
+            <div class="form-row">
+                <label for="color">Lieblingsfarbe</label>
+                <input id="color" name="color" type="color" value="#004f9f">
+            </div>
+
+            <div class="form-row">
+                <label for="country">Land</label>
+                <select id="country" name="country">
+                    <option>Schweiz</option>
+                    <option>Deutschland</option>
+                    <option>Österreich</option>
+                </select>
+            </div>
+
+            <button type="submit">Absenden</button>
+        </form>
+    </div>
+</main>
+
+<footer>
+    &copy; 2025 – Lab 7 Demo
+</footer>
+</body>
+</html>
