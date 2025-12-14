@@ -5,26 +5,18 @@
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>Lab 12 – Device Orientation Arrow</title>
     <style>
-        body {
-            margin: 0;
-            font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
-        }
+        body { margin: 0; font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif; }
 
-        /* Pfeil oben im Viewport */
         #hud {
             position: fixed;
-            top: 12px;
-            left: 0;
-            right: 0;
+            top: 12px; left: 0; right: 0;
             display: flex;
             justify-content: center;
             pointer-events: none;
         }
 
-        /* Pfeil-Grafik als CSS-Dreieck */
         #arrow {
-            width: 0;
-            height: 0;
+            width: 0; height: 0;
             border-left: 18px solid transparent;
             border-right: 18px solid transparent;
             border-bottom: 36px solid #111;
@@ -32,17 +24,8 @@
             transform: rotate(0deg);
         }
 
-        #panel {
-            padding: 16px;
-            margin-top: 80px;
-            line-height: 1.4;
-        }
-
-        button {
-            font-size: 16px;
-            padding: 10px 14px;
-        }
-
+        #panel { padding: 16px; margin-top: 80px; line-height: 1.4; }
+        button { font-size: 16px; padding: 10px 14px; margin-right: 8px; }
         code { background: #f3f3f3; padding: 2px 6px; border-radius: 6px; }
     </style>
 </head>
@@ -55,8 +38,8 @@
     <button id="startBtn">Start / Permission</button>
     <button id="resetBtn">Reset Referenz</button>
     <p>Status: <span id="status">nicht gestartet</span></p>
-    <p>alpha: <code id="alphaVal">-</code>°, referenz: <code id="refVal">-</code>°, delta: <code id="deltaVal">-</code>°</p>
-    <p>Hinweis: iOS braucht meistens <b>HTTPS</b> und einen Klick (Permission).</p>
+    <p>alpha: <code id="alphaVal">-</code>°, referenz(abs): <code id="refVal">-</code>°, delta(smooth): <code id="deltaVal">-</code>°</p>
+    <p><small>Tipp: Für z-Achse am deutlichsten: Handy flach drehen (wie Kompass/Lenkrad).</small></p>
 </div>
 
 <script>
@@ -66,53 +49,79 @@
     const refEl = document.getElementById("refVal");
     const deltaEl = document.getElementById("deltaVal");
 
-    let referenceAlpha = null;
+    // Unwrap + Smooth State
+    let referenceAbs = null; // Referenz im kontinuierlichen Winkelraum
+    let prevAlpha = null;    // letzter roher alpha (0..360)
+    let alphaAbs = 0;        // kontinuierlicher Winkel
+    let smoothDelta = 0;     // geglättetes delta
 
-    function normDeg(d) {
-        return (d % 360 + 360) % 360;
-    }
-    function shortestDeltaDeg(current, reference) {
-        let d = normDeg(current) - normDeg(reference);
-        d = ((d + 540) % 360) - 180;
-        return d;
-    }
-
-    function handleOrientation(e) {
+    function onOrientation(e) {
         const alpha = (typeof e.alpha === "number") ? e.alpha : null;
-
         if (alpha == null) {
-            statusEl.textContent = "alpha = null (keine z-Achse Heading Daten)";
-            alphaEl.textContent = "-";
+            statusEl.textContent = "alpha = null (kein z-Achse Heading)";
             return;
         }
 
-        // Referenz setzen, sobald wir zum ersten Mal einen echten alpha Wert haben
-        if (referenceAlpha === null) referenceAlpha = alpha;
-
-        const delta = shortestDeltaDeg(alpha, referenceAlpha);
-
-        if (!Number.isFinite(delta)) {
-            statusEl.textContent = "delta ist nicht finite (NaN/Infinity)";
-            return;
+        // 1) Unwrap 0..360 -> kontinuierlich
+        if (prevAlpha === null) {
+            prevAlpha = alpha;
+            alphaAbs = alpha;
+        } else {
+            let diff = alpha - prevAlpha;
+            diff = ((diff + 540) % 360) - 180; // kleinste Differenz [-180, 180]
+            alphaAbs += diff;
+            prevAlpha = alpha;
         }
 
-        arrow.style.transform = `rotate(${delta}deg)`;
+        if (referenceAbs === null) referenceAbs = alphaAbs;
 
-        statusEl.textContent = `läuft (${e.type}, absolute=${e.absolute})`;
+        // 2) Delta relativ zur Referenz
+        const delta = alphaAbs - referenceAbs;
+
+        // 3) Smoothing
+        const k = 0.15; // kleiner = ruhiger, größer = direkter
+        smoothDelta = smoothDelta + k * (delta - smoothDelta);
+
+        // Pfeil im Viewport stabil nach oben
+        arrow.style.transform = `rotate(${smoothDelta}deg)`;
+
+        statusEl.textContent = `läuft (${e.type})`;
         alphaEl.textContent = alpha.toFixed(1);
-        refEl.textContent = referenceAlpha.toFixed(1);
-        deltaEl.textContent = delta.toFixed(1);
+        refEl.textContent = referenceAbs.toFixed(1);
+        deltaEl.textContent = smoothDelta.toFixed(1);
     }
 
-    // Beide registrieren – je nach Gerät kommt nur eines “gut”
-    window.addEventListener("deviceorientationabsolute", handleOrientation, true);
-    window.addEventListener("deviceorientation", handleOrientation, true);
+    async function start() {
+        // iOS braucht requestPermission; Android meist nicht – schadet aber nicht
+        if (typeof DeviceOrientationEvent !== "undefined" &&
+            typeof DeviceOrientationEvent.requestPermission === "function") {
+            const p = await DeviceOrientationEvent.requestPermission();
+            if (p !== "granted") {
+                statusEl.textContent = "Permission verweigert";
+                return;
+            }
+        }
+        window.addEventListener("deviceorientationabsolute", onOrientation, true);
+        window.addEventListener("deviceorientation", onOrientation, true);
+        statusEl.textContent = "Listener registriert – drehe das Gerät";
+    }
 
-    // optional Reset-Button
-    document.getElementById("resetBtn")?.addEventListener("click", () => {
-        referenceAlpha = null;
+    function reset() {
+        referenceAbs = null;
+        prevAlpha = null;
+        alphaAbs = 0;
+        smoothDelta = 0;
+        arrow.style.transform = "rotate(0deg)";
         statusEl.textContent = "Referenz zurückgesetzt";
+        alphaEl.textContent = "-";
+        refEl.textContent = "-";
+        deltaEl.textContent = "-";
+    }
+
+    document.getElementById("startBtn").addEventListener("click", () => {
+        start().catch(err => statusEl.textContent = "Fehler: " + err.message);
     });
+    document.getElementById("resetBtn").addEventListener("click", reset);
 </script>
 </body>
 </html>
