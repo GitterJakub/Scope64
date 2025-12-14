@@ -96,7 +96,7 @@
             return;
         }
 
-        arrow.style.transform = `rotate(${-delta}deg)`;
+        arrow.style.transform = `rotate(${delta}deg)`;
 
         statusEl.textContent = `läuft (${e.type}, absolute=${e.absolute})`;
         alphaEl.textContent = alpha.toFixed(1);
