@@ -69,50 +69,49 @@
     let referenceAlpha = null;
 
     function normDeg(d) {
-        // normalisiert auf [0, 360)
         return (d % 360 + 360) % 360;
     }
-
     function shortestDeltaDeg(current, reference) {
-        // liefert delta in [-180, 180]
         let d = normDeg(current) - normDeg(reference);
         d = ((d + 540) % 360) - 180;
         return d;
     }
 
-    function onOrientation(e) {
-        statusEl.textContent = "event ok";
-        alphaEl.textContent = String(e.alpha);
-        // füge dir auch diese zwei Felder ins HTML ein oder logge sie:
-        console.log("alpha", e.alpha, "beta", e.beta, "gamma", e.gamma, "absolute", e.absolute);
-    }
-    window.addEventListener("deviceorientation", onOrientation, true);
+    function handleOrientation(e) {
+        const alpha = (typeof e.alpha === "number") ? e.alpha : null;
 
-
-    async function requestPermissionAndStart() {
-        // iOS 13+ verlangt oft explizite Permission (nur in User-Gesture!)
-        if (typeof DeviceOrientationEvent !== "undefined" &&
-            typeof DeviceOrientationEvent.requestPermission === "function") {
-            const p = await DeviceOrientationEvent.requestPermission();
-            if (p !== "granted") {
-                statusEl.textContent = "Permission verweigert";
-                return;
-            }
+        if (alpha == null) {
+            statusEl.textContent = "alpha = null (keine z-Achse Heading Daten)";
+            alphaEl.textContent = "-";
+            return;
         }
 
-        window.addEventListener("deviceorientation", onOrientation, true);
-        statusEl.textContent = "Listener registriert (drehe das Gerät)";
+        // Referenz setzen, sobald wir zum ersten Mal einen echten alpha Wert haben
+        if (referenceAlpha === null) referenceAlpha = alpha;
+
+        const delta = shortestDeltaDeg(alpha, referenceAlpha);
+
+        if (!Number.isFinite(delta)) {
+            statusEl.textContent = "delta ist nicht finite (NaN/Infinity)";
+            return;
+        }
+
+        arrow.style.transform = `rotate(${-delta}deg)`;
+
+        statusEl.textContent = `läuft (${e.type}, absolute=${e.absolute})`;
+        alphaEl.textContent = alpha.toFixed(1);
+        refEl.textContent = referenceAlpha.toFixed(1);
+        deltaEl.textContent = delta.toFixed(1);
     }
 
-    document.getElementById("startBtn").addEventListener("click", () => {
-        requestPermissionAndStart().catch(err => {
-            statusEl.textContent = "Fehler: " + err.message;
-        });
-    });
+    // Beide registrieren – je nach Gerät kommt nur eines “gut”
+    window.addEventListener("deviceorientationabsolute", handleOrientation, true);
+    window.addEventListener("deviceorientation", handleOrientation, true);
 
-    document.getElementById("resetBtn").addEventListener("click", () => {
+    // optional Reset-Button
+    document.getElementById("resetBtn")?.addEventListener("click", () => {
         referenceAlpha = null;
-        statusEl.textContent = "Referenz zurückgesetzt (drehe das Gerät / warte auf Event)";
+        statusEl.textContent = "Referenz zurückgesetzt";
     });
 </script>
 </body>
