@@ -81,26 +81,13 @@
     }
 
     function onOrientation(e) {
-        // alpha: Rotation um z-Achse (0..360), kann null sein je nach Gerät
-        if (e.alpha == null) {
-            statusEl.textContent = "DeviceOrientation liefert kein alpha (nicht unterstützt?).";
-            return;
-        }
-
-        const alpha = e.alpha; // Grad
-        if (referenceAlpha === null) referenceAlpha = alpha;
-
-        const delta = shortestDeltaDeg(alpha, referenceAlpha);
-
-        // Pfeil soll "in Originalrichtung" zeigen:
-        // Wenn das Gerät +delta gedreht wurde, drehen wir den Pfeil -delta.
-        arrow.style.transform = `rotate(${-delta}deg)`;
-
-        alphaEl.textContent = alpha.toFixed(1);
-        refEl.textContent = referenceAlpha.toFixed(1);
-        deltaEl.textContent = delta.toFixed(1);
-        statusEl.textContent = "läuft";
+        statusEl.textContent = "event ok";
+        alphaEl.textContent = String(e.alpha);
+        // füge dir auch diese zwei Felder ins HTML ein oder logge sie:
+        console.log("alpha", e.alpha, "beta", e.beta, "gamma", e.gamma, "absolute", e.absolute);
     }
+    window.addEventListener("deviceorientation", onOrientation, true);
+
 
     async function requestPermissionAndStart() {
         // iOS 13+ verlangt oft explizite Permission (nur in User-Gesture!)
