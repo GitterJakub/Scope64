@@ -38,20 +38,10 @@ import androidx.compose.ui.unit.sp
 @Composable
 fun HomeScreen(
     onSearch: (
-        nameOrUser: String,
-        dateFrom: String?,
-        dateTo: String?,
-        ratingMin: Int?,
-        ratingMax: Int?
-    ) -> Unit = { _, _, _, _, _ -> }
+        nameOrUser: String
+    ) -> Unit = { _ -> }
 ) {
     var nameOrUser by remember { mutableStateOf("") }
-
-    var dateFrom by remember { mutableStateOf("") }
-    var dateTo by remember { mutableStateOf("") }
-
-    var ratingMin by remember { mutableStateOf<Int?>(null) }
-    var ratingMax by remember { mutableStateOf<Int?>(null) }
 
     var errorMessage by remember { mutableStateOf<String?>(null) }
 
@@ -92,61 +82,12 @@ fun HomeScreen(
             modifier = Modifier.fillMaxWidth(),
             placeholder = {
                 Text(
-                    "e.g. Magnus Carlsen or DrNykterstein",
+                    "e.g. DrNykterstein",
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis
                 )
             }
         )
-
-        Spacer(modifier = Modifier.height(24.dp))
-
-        // Date
-        Text(
-            text = "Date (optional)",
-            color = Color.White,
-            fontSize = 16.sp,
-            fontWeight = FontWeight.Medium
-        )
-        Spacer(Modifier.height(8.dp))
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.spacedBy(8.dp)
-        ) {
-            OutlinedTextField(
-                value = dateFrom,
-                onValueChange = { dateFrom = it },
-                label = { Text("From") },
-                singleLine = true,
-                modifier = Modifier.weight(1f),
-                placeholder = {
-                    Text(
-                        "YYYY-MM-DD",
-                        maxLines = 1,
-                        overflow = TextOverflow.Ellipsis
-                    )
-                }
-            )
-            OutlinedTextField(
-                value = dateTo,
-                onValueChange = { dateTo = it },
-                label = { Text("To") },
-                singleLine = true,
-                modifier = Modifier.weight(1f),
-                placeholder = {
-                    Text(
-                        "YYYY-MM-DD",
-                        maxLines = 1,
-                        overflow = TextOverflow.Ellipsis
-                    )
-                }
-            )
-        }
-        Spacer(modifier = Modifier.height(24.dp))
-        RatingRangeSlider { min, max ->
-            ratingMin = min
-            ratingMax = max
-        }
 
         Spacer(modifier = Modifier.height(24.dp))
 
@@ -169,15 +110,8 @@ fun HomeScreen(
                 } else {
                     errorMessage = null
 
-                    val from = dateFrom.trim().ifBlank { null }
-                    val to = dateTo.trim().ifBlank { null }
-
                     onSearch(
-                        trimmedName,
-                        from,
-                        to,
-                        ratingMin,
-                        ratingMax
+                        trimmedName
                     )
                 }
             },
@@ -192,8 +126,6 @@ fun HomeScreen(
             onClick = {
                 // Reset Filter
                 nameOrUser = ""
-                dateFrom = ""
-                dateTo = ""
                 errorMessage = null
             },
             modifier = Modifier.align(Alignment.CenterHorizontally)

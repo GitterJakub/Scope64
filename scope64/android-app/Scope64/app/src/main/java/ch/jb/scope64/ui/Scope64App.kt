@@ -26,8 +26,8 @@ fun Scope64App() {
     when (val screen = currentScreen) {
         is Screen.Search -> {
             HomeScreen(
-                onSearch = { name, from, to, ratingMin, ratingMax ->
-                    viewModel.searchGames(name, from, to, ratingMin, ratingMax)
+                onSearch = { name ->
+                    viewModel.searchGames(name)
                     currentScreen = Screen.Results
                 }
             )

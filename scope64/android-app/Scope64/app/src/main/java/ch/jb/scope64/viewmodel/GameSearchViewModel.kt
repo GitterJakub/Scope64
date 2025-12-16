@@ -22,10 +22,6 @@ class GamesSearchViewModel(application: Application) : AndroidViewModel(applicat
 
     fun searchGames(
         username: String,
-        dateFrom: String?,
-        dateTo: String?,
-        ratingMin: Int?,
-        ratingMax: Int?
     ) {
         val user = username.trim()
         if (user.isEmpty()) {
@@ -37,9 +33,6 @@ class GamesSearchViewModel(application: Application) : AndroidViewModel(applicat
         errorMessage.value = null
         games.clear()
 
-        val sinceMs = parseDateToMillis(dateFrom)
-        val untilMs = parseDateToMillis(dateTo)
-
         val params = mutableListOf(
             "max=30",            // z.B. max 30 Partien
             "moves=true",
@@ -47,8 +40,6 @@ class GamesSearchViewModel(application: Application) : AndroidViewModel(applicat
             "opening=true"
         )
 
-        if (sinceMs != null) params += "since=$sinceMs"
-        if (untilMs != null) params += "until=$untilMs"
 
         val url = "https://lichess.org/api/games/user/$user?" +
                 params.joinToString("&")
@@ -64,7 +55,7 @@ class GamesSearchViewModel(application: Application) : AndroidViewModel(applicat
                 isLoading.value = false
                 Log.d("scope64", "Response preview: ${response.take(200)}")
                 try {
-                    parseNdjsonResponse(response, ratingMin, ratingMax)
+                    parseNdjsonResponse(response)
                 } catch (e: Exception) {
                     Log.e("scope64", "Parsing error", e)
                     errorMessage.value = "Fehler beim Verarbeiten der Daten."
@@ -94,9 +85,7 @@ class GamesSearchViewModel(application: Application) : AndroidViewModel(applicat
     }
 
     private fun parseNdjsonResponse(
-        response: String,
-        ratingMin: Int?,
-        ratingMax: Int?
+        response: String
     ) {
         response.lineSequence()
             .filter { it.isNotBlank() }
@@ -130,10 +119,6 @@ class GamesSearchViewModel(application: Application) : AndroidViewModel(applicat
 
                     val moves = obj.optString("moves", "")
 
-                    // Rating-Filter (optional)
-                    if (!ratingPassesFilter(whiteRating, blackRating, ratingMin, ratingMax)) {
-                        return@forEachIndexed
-                    }
 
                     games += GameSummary(
                         id = id,
@@ -155,40 +140,4 @@ class GamesSearchViewModel(application: Application) : AndroidViewModel(applicat
         }
     }
 
-
-    private fun ratingPassesFilter(
-        whiteRating: Int?,
-        blackRating: Int?,
-        ratingMin: Int?,
-        ratingMax: Int?
-    ): Boolean {
-        // Wenn kein Filter gesetzt ist: alles durchlassen
-        if (ratingMin == null && ratingMax == null) return true
-
-        val wr = whiteRating ?: 0
-        val br = blackRating ?: 0
-
-        val minOk = ratingMin?.let { wr >= it || br >= it } ?: true
-        val maxOk = ratingMax?.let { wr <= it || br <= it } ?: true
-
-        return minOk && maxOk
-    }
-
-    private fun parseDateToMillis(date: String?): Long? {
-        if (date.isNullOrBlank()) return null
-        return try {
-            val parts = date.split("-")
-            if (parts.size != 3) return null
-            val year = parts[0].toInt()
-            val month = parts[1].toInt() - 1 // Calendar: 0-basiert
-            val day = parts[2].toInt()
-
-            val cal = Calendar.getInstance(TimeZone.getTimeZone("UTC"))
-            cal.set(year, month, day, 0, 0, 0)
-            cal.set(Calendar.MILLISECOND, 0)
-            cal.timeInMillis
-        } catch (e: Exception) {
-            null
-        }
-    }
 }
